@@ -1,0 +1,92 @@
+import planetas.*
+
+const persona1 = new Persona(anios=70,monedas=100)
+const persona2 = new Persona(anios=20)
+const persona3 = new Persona(anios=65)
+const persona4 = new Persona(anios=70)
+const museo1 = new Museo(superficie=100,indiceDeImportancia=5)
+const muralla1 = new Muralla(longitud=100)
+const muralla2 = new Muralla(longitud=200)
+const museo2 = new Museo(superficie=5,indiceDeImportancia=1)
+const muralla3 = new Muralla(longitud=2)
+const muralla4 = new Muralla(longitud=3)
+const tierra = new Planeta(habitantes=[persona1,persona2,persona3,persona4],construcciones=[museo1,muralla1,muralla2])
+const marte = new Planeta(habitantes=[persona1,persona2,persona3,persona4], construcciones=[museo2,muralla3,muralla4])
+const constructor1 = new Constructor(inteligencia=200,region = montania)
+const montania = new Montania()
+const constructor2 = new Constructor(inteligencia=200,region = costa)
+const costa= new Costa()
+const productor1 = new Productor(planeta=tierra)
+const constructor3 = new Constructor(inteligencia=200, region = montania, construccionesHechas=[1,2,3,4,5,6])
+const constructor4 = new Constructor(inteligencia=200, region = montania, construccionesHechas=[1,2,3,4,5,6])
+const neptuno = new Planeta(habitantes=[constructor3,constructor4])
+
+
+describe "Pruebas de 2 planetas con 4 habitantes, uno valioso y el otro no, delegacion diplomatica de 3 personas" {
+  test "Delegacion diplomatica de 3 personas" {
+    assert.equals([persona1,persona2,persona3], tierra.formarDelegacion())
+  }
+  test "es valioso"{
+    assert.that(tierra.esValioso())
+  }
+  test "planeta no valioso" {
+    assert.notThat(marte.esValioso())
+  }
+  test "habitante gasta monedas y cambia la delegacion" {
+    persona1.gastarMonedas(100)
+    assert.equals([persona2,persona3], tierra.formarDelegacion())
+  }
+  test "habitante cumple años y cambia la delegacion" {
+    persona3.cumplirAnios()
+    assert.equals([persona1,persona2], tierra.formarDelegacion())
+  }
+
+   test "Constructor trabaja en la Montaña, visto desde el planeta tierra" {
+    assert.equals(3, tierra.construcciones().size())
+    constructor1.trabajar(tierra,10)
+    assert.equals(4, tierra.construcciones().size()) //Como trabajo se le agregó una construccion al planeta tierra    
+  }
+    test "Constructor trabaja en la Montaña, visto desde el constructor" {
+    assert.equals(0, constructor1.construccionesHechas().size())
+    constructor1.trabajar(tierra,10)
+    assert.equals(1, constructor1.construccionesHechas().size()) //Como trabajo se le agregó una construccion a las construcciones del constructor
+  }
+  test "Constructor trabaja en la Costa, visto desde el planeta marte" {
+    assert.equals(3, marte.construcciones().size()) //Marte inicialmente tiene 3 construcciones
+    constructor2.trabajar(marte,20)
+    assert.equals(4, marte.construcciones().size()) //Como trabajo se le agregó una construccion a las construcciones del planeta marte
+  }
+  test "Constructor trabaja en la Costa, visto desde el constructor" {
+    assert.equals(0, constructor2.construccionesHechas().size())
+    constructor2.trabajar(marte,10)
+    assert.equals(1, constructor2.construccionesHechas().size()) //Como trabajo se le agregó una construccion a las construcciones del constructor
+  }
+
+  test "Productor trabaja en el planeta del cual es" {
+    productor1.trabajar(tierra, 10) //El productor inicialmente tiene 20 monedas
+    assert.equals(productor1.monedas(), 50) //al trabajar 10 unidades de tiempo, el calculo es 3*10 + las 20 iniciales
+  }
+  test "Productor intenta trabajar en otro planeta (no puede)" {
+    productor1.trabajar(marte, 10) //El productor inicialmente tiene 20 monedas
+    assert.equals(productor1.monedas(), 20) //Como no es de marte no puede trabajar en marte por ende queda con las 20 monedas
+  }
+
+  test "Constructores forman la delegacion diplomatica de Neptuno" {
+    neptuno.formarDelegacion()
+    assert.equals([constructor3,constructor4], neptuno.delegacionDiplomatica())
+  }
+
+    test "Hacer trabajar a la delegacion de neptuno" {
+    //Recursos de constructor3 inicialmente es 80
+    neptuno.formarDelegacion()
+    neptuno.delegacionDiplomatica().forEach({x=>x.trabajar(neptuno,10)})
+    assert.equals(85,constructor3.recursos()) //Despues de trabajar los recursos del constructor3 son 85.
+  }
+
+   test "La tierra invade neptuno y hace trabajar a sus delegaciones" {
+    //Recursos de constructor3 inicialmente es 80
+    neptuno.formarDelegacion()
+    neptuno.delegacionDiplomatica().forEach({x=>x.trabajar(tierra,10)})
+    assert.equals(85,constructor3.recursos()) //Despues de trabajar los recursos del constructor3 son 85.
+  }
+}
